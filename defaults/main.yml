@@ -1,1 +1,4 @@
 ---
+host_domain: domain.local
+# service_prefix:
+configure_etc_hosts: true

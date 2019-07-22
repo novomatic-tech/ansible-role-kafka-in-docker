@@ -19,5 +19,5 @@ galaxy_info:
     - cluster
     - kafkacontainer
 
-dependencies:
-  - geerlingguy.docker
+dependencies: []
+# - geerlingguy.docker
