@@ -2,19 +2,22 @@
 
 - name: Kafka cluster | Initialize servers lists
   set_fact:
-    zoo_servers: []
-    kafka_zoo_servers: []
+    zoo_servers: ""
+    kafka_zoo_servers: ""
+
+- name: Kafka cluster | Set required server lists
+  set_fact:
+    zoo_servers: "{{ zoo_servers + ' server.' + ( id | int + 1 ) | string + '=' + zoo_prefix + '-' + ( id | int + 1 ) | string  + ':' + zoo_ports.mgmt }}"
+    kafka_zoo_servers: "{{ kafka_zoo_servers + ' ' + zoo_prefix + '-' + ( id | int + 1 ) | string + ':' + zoo_ports.client | string }}"
+  loop: "{{ groups['kafka'] }}"
+  loop_control:
+    index_var: id
 
 - name: Update etc/hosts file with correct entrance
   blockinfile:
     path: /etc/hosts
     block: |
-      {% set  kafka_hosts_name = [] %}
-      {% if service_prefix is defined %}
-      {% set kafka_hosts_name = [service_prefix+'-kafka-'+(id | int + 1 ) | string, service_prefix+'-zoo-'+(id | int + 1 ) | string ] %}
-      {% else %}
-      {% set kafka_hosts_name = ['kafka'+(id | int + 1 ) | string, 'zoo'+(id | int + 1 ) | string ] %}
-      {% endif %}
+      {% set kafka_hosts_name = [ kafka_prefix + '-' + (id | int + 1 ) | string, zoo_prefix + '-' + (id | int + 1 ) | string ] %}
       {% for host in kafka_hosts_name %}
       {{ ansible_default_ipv4['address'] }} {{ host + '.' + host_domain + ' '+ host if host_domain is defined else host }}
       {% endfor %}
@@ -23,3 +26,41 @@
   loop_control:
     index_var: id
   when: configure_etc_hosts
+
+- name: Kafka cluster | Docker kafka and zookeeper
+  docker_service:
+    project_name: kafka
+    definition:
+      version: '2.1'
+      services:
+        "{{ zoo_prefix }}":
+          image: zookeeper:{{ zoo_version }}
+          container_name: "{{ zoo_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+          hostname: "{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+          restart: always
+          network_mode: host
+          environment:
+            ZOO_MY_ID: "{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+            ZOO_PORT: "{{ zoo_ports.client }}"
+            ZOO_SERVERS: "{{ zoo_servers }}"
+        "{{ kafka_prefix }}":
+          image: confluentinc/cp-kafka:{{ kafka_version }}
+          container_name: "{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+          restart: always
+          network_mode: host
+          environment:
+            KAFKA_ADVERTISED_LISTENERS: >
+              LISTENER_DOCKER_INTERNAL://{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}:{{ kafka_ports.server }}
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT
+            KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+            KAFKA_ZOOKEEPER_CONNECT: "{{ kafka_zoo_servers }}"
+            KAFKA_BROKER_ID: "{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+            KAFKA_JMX_OPTS: >
+              "-Dcom.sun.management.jmxremote
+              -Dcom.sun.management.jmxremote.authenticate=false
+              -Dcom.sun.management.jmxremote.ssl=false
+              -Djava.rmi.server.hostname={{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}
+              -Dcom.sun.management.jmxremote.rmi.port={{ kafka_ports.jmx }}"
+            JMX_PORT: "{{ kafka_ports.jmx }}"
+          depends_on:
+            - "{{ zoo_prefix }}"
