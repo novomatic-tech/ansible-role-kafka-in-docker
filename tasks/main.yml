@@ -29,11 +29,11 @@
 
 - name: Kafka cluster | Docker kafka and zookeeper
   docker_service:
-    project_name: kafka
+    project_name: "{{ kafka_prefix }}"
     definition:
       version: '2.1'
       services:
-        "{{ zoo_prefix }}":
+        zookeeper:
           image: zookeeper:{{ zoo_version }}
           container_name: "{{ zoo_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
           hostname: "{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
@@ -43,7 +43,7 @@
             ZOO_MY_ID: "{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
             ZOO_PORT: "{{ zoo_ports.client }}"
             ZOO_SERVERS: "{{ zoo_servers }}"
-        "{{ kafka_prefix }}":
+        kafka:
           image: confluentinc/cp-kafka:{{ kafka_version }}
           container_name: "{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
           restart: always
@@ -63,4 +63,4 @@
               -Dcom.sun.management.jmxremote.rmi.port={{ kafka_ports.jmx }}"
             JMX_PORT: "{{ kafka_ports.jmx }}"
           depends_on:
-            - "{{ zoo_prefix }}"
+            - "zookeeper"
