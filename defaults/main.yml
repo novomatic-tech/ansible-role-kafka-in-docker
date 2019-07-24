@@ -1,13 +1,19 @@
 ---
 host_domain: domain.local
+persistence_path: "/data"
 # service_prefix:
 kafka_prefix: "{{ service_prefix+'-kafka' if service_prefix is defined else 'kafka' }}"
 kafka_ports:
   server: 9092
   jmx: 9082
 kafka_version: "4.1.2-2"
-kafka_exporter_enabled: true
-kafka_exporter_version: "patch1"
+kafka_monitoring_enabled: true
+exporter_versions:
+  kafka: "patch1"
+  jmx: "latest"
+  zoo: "latest"
+kafka_mon_user: kafkamonit
+kafka_mon_group: kafkamonit
 zoo_prefix: "{{ service_prefix+'-zoo' if service_prefix is defined else 'zoo' }}"
 zoo_ports:
   client: 2181

@@ -27,7 +27,7 @@
     index_var: id
   when: configure_etc_hosts
 
-- name: Kafka cluster | Upload docker compose: kafka and zookeeper
+- name: Kafka cluster | Upload docker compose for kafka and zookeeper
   docker_service:
     project_name: "{{ kafka_prefix }}"
     definition:
@@ -65,16 +65,55 @@
           depends_on:
             - "zookeeper"
 
-- name: Kafka cluster | Upload docker compose: kafka exporter
-  docker_service:
-    project_name: "{{ kafka_prefix }}_exporter"
-    definition:
-      version: '2.1'
-      services:
-        exporter:
-          image: danielqsj/kafka-exporter:{{ kafka_exporter_version }}
-          container_name: "{{ kafka_prefix }}-exporter-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
-          restart: always
-          command: "--kafka.server={{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}:{{ kafka_ports.server }}"
-          network_mode: host
-  when: kafka_exporter_enabled
+- name: Enable component monitoring
+  block:
+    - name: Kafka cluster | Create monitoring directory
+      file:
+        path: "{{ persistence_path }}/exporter"
+        state: directory
+
+    - name: Kafka cluster | Template configuration file for jmx-exporter config.yml
+      template:
+        src: config.yml.j2
+        dest: "{{ persistence_path }}/exporter/config.yml"
+        owner: nobody
+        group: nobody
+        mode: '0644'
+      when: ansible_os_family == 'RedHat'
+
+    - name: Kafka cluster | Template configuration file for jmx-exporter config.yml
+      template:
+        src: config.yml.j2
+        dest: "{{ persistence_path }}/exporter/config.yml"
+        owner: nobody
+        group: nogroup
+        mode: '0644'
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Kafka cluster | Upload docker compose for monitoring
+      docker_service:
+        project_name: "{{ kafka_prefix }}_exporter"
+        definition:
+          version: '2.1'
+          services:
+            exporter:
+              image: danielqsj/kafka-exporter:{{ exporter_versions.kafka }}
+              container_name: "{{ kafka_prefix }}-exporter-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+              restart: always
+              command: "--kafka.server={{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}:{{ kafka_ports.server }}"
+              network_mode: host
+            exporter-jmx:
+              image: solsson/kafka-prometheus-jmx-exporter:{{ exporter_versions.jmx }}
+              container_name: "{{ kafka_prefix }}-exporter-jmx-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+              restart: always
+              command: "5556 /etc/jmx-kafka/config.yml"
+              network_mode: host
+              volumes:
+                - "{{ persistence_path }}/exporter:/etc/jmx-kafka:ro"
+            exporter-zoo:
+              image: dabealu/zookeeper-exporter:{{ exporter_versions.zoo }}
+              container_name: "{{ kafka_prefix }}-exporter-zoo-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+              restart: always
+              network_mode: host
+              command: "--zk-host={{ zoo_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }} --timeout=30"
+  when: kafka_monitoring_enabled

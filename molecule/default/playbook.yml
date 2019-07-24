@@ -4,7 +4,7 @@
   pre_tasks:
     - name: Include vars
       include_vars: vars.yml
-    - name: Install required package
+    - name: Install required packages
       yum:
         name: '{{ item }}'
         state: present
@@ -13,7 +13,7 @@
         - firewalld
         - epel-release
         - python-pip
-    - name: Install docker python package
+    - name: Install docker python modules
       pip:
         name: '{{ item }}'
         state: present
@@ -29,13 +29,14 @@
   pre_tasks:
     - name: Include vars
       include_vars: vars.yml
-    - name: Install ufw package
+    - name: Install required packages
       apt:
         name: '{{ item }}'
         state: present
       loop:
         - ufw
-    - name: Install docker python package
+        - python-pip
+    - name: Install docker python modules
       pip:
         name: '{{ item }}'
         state: present
