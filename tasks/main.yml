@@ -46,6 +46,7 @@
         kafka:
           image: confluentinc/cp-kafka:{{ kafka_version }}
           container_name: "{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+          hostname: "{{ zoo_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
           restart: always
           network_mode: host
           environment:
