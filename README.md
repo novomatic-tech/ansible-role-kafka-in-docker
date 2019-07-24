@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/novomatic-tech/ansible-role-kafka-in-docker.svg?branch=master)](https://travis-ci.org/novomatic-tech/ansible-role-kafka-in-docker) [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://github.com/novomatic-tech/ansible-role-kafka-in-docker/blob/master/LICENSE) [![Ansible Role Name](https://img.shields.io/ansible/role/42270.svg)](https://galaxy.ansible.com/novomatic-tech/kafka_in_docker) [![Ansible Role counter](https://img.shields.io/ansible/role/d/42270.svg)](https://galaxy.ansible.com/novomatic-tech/kafka_in_docker)
 # ansible-role-kafka-in-docker
 Role to install and configure Kafka cluster base on official and some community containers.
 Role is used in our organization for different testing purposes and demo enviromnets.
