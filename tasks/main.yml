@@ -27,7 +27,7 @@
     index_var: id
   when: configure_etc_hosts
 
-- name: Kafka cluster | Docker kafka and zookeeper
+- name: Kafka cluster | Upload docker compose: kafka and zookeeper
   docker_service:
     project_name: "{{ kafka_prefix }}"
     definition:
@@ -64,3 +64,17 @@
             JMX_PORT: "{{ kafka_ports.jmx }}"
           depends_on:
             - "zookeeper"
+
+- name: Kafka cluster | Upload docker compose: kafka exporter
+  docker_service:
+    project_name: "{{ kafka_prefix }}_exporter"
+    definition:
+      version: '2.1'
+      services:
+        exporter:
+          image: danielqsj/kafka-exporter:{{ kafka_exporter_version }}
+          container_name: "{{ kafka_prefix }}-exporter-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+          restart: always
+          command: "--kafka.server={{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}:{{ kafka_ports.server }}"
+          network_mode: host
+  when: kafka_exporter_enabled

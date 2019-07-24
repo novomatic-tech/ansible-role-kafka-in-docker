@@ -6,6 +6,8 @@ kafka_ports:
   server: 9092
   jmx: 9082
 kafka_version: "4.1.2-2"
+kafka_exporter_enabled: true
+kafka_exporter_version: "patch1"
 zoo_prefix: "{{ service_prefix+'-zoo' if service_prefix is defined else 'zoo' }}"
 zoo_ports:
   client: 2181

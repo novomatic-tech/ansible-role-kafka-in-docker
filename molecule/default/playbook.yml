@@ -13,7 +13,7 @@
         - firewalld
         - epel-release
         - python-pip
-    - name: Install firewalld package
+    - name: Install docker python package
       pip:
         name: '{{ item }}'
         state: present
@@ -35,6 +35,13 @@
         state: present
       loop:
         - ufw
+    - name: Install docker python package
+      pip:
+        name: '{{ item }}'
+        state: present
+      loop:
+        - docker
+        - docker-compose
   roles:
     - geerlingguy.docker
     - ansible-role-kafka-in-docker
