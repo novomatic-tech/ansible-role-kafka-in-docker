@@ -10,8 +10,6 @@ env:
   - ANSIBLE='ansible>=2.7.0,<2.8.0'
 install:
   - pip install ${ANSIBLE} 'ansible-lint>=3.4.15' molecule docker git-semver 'testinfra==3.0.4' jinja2
-before_script:
-  - molecule/default/tests/playbook.yml
 script:
   - molecule test
 deploy:
