@@ -6,7 +6,9 @@ Role is used in our organization for different testing purposes and demo envirom
 ToDo
 --------------
 *   Add correct test to check if cluster is correctly setup
-*   Switch docker container to use other `USER` than root
+*   Switch docker container to use other `USER` than root:
+    *   kafka and zookeeper use user `zookeeper` (uid=12345) (/)
+    *   exporter still in root users (x)
 *   Configure friewalld and ufw rules to expose only kafka traffic ports outside hosts.
 *   Enable kafka persistence
 
@@ -15,6 +17,15 @@ Role Variables
 --------------
 
 All default variables are predefined in [defaults/main.yml](defaults/main.yml).
+If you switch to `official zookeeper image` below variable facts need to be changed in [tasks/main.yml](defaults/main.yml):
+*   `zoo_server` fact need to be modified to:
+    ```
+    zoo_servers: "{{ zoo_servers + [' server.' + ( id | int + 1 ) | string + '=' + zoo_prefix + '-' + ( id | int + 1 ) | string  + ':' + zoo_ports.mgmt ] }}"
+    ```
+*   `ZOOKEEPER_SERVER_ID` to `ZOO_SERVER_ID`
+*   `ZOOKEEPER_CLIENT_PORT` to `ZOO_PORT`
+*   `ZOOKEEPER_SERVERS` to `ZOO_SERVERS`
+
 
 Example Playbook
 ----------------

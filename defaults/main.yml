@@ -1,12 +1,13 @@
 ---
 host_domain: domain.local
 persistence_path: "/data"
+kafka_persistence_enabled: true
 # service_prefix:
 kafka_prefix: "{{ service_prefix+'-kafka' if service_prefix is defined else 'kafka' }}"
 kafka_ports:
   server: 9092
   jmx: 9082
-kafka_version: "4.1.2-2"
+kafka_version: "4.1.2-3"
 kafka_monitoring_enabled: true
 exporter_versions:
   kafka: "patch1"
@@ -18,5 +19,5 @@ zoo_prefix: "{{ service_prefix+'-zoo' if service_prefix is defined else 'zoo' }}
 zoo_ports:
   client: 2181
   mgmt: "2888:3888"
-zoo_version: "3.4.11"
+zoo_version: "5.3.0"
 configure_etc_hosts: true

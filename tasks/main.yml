@@ -2,13 +2,13 @@
 
 - name: Kafka cluster | Initialize servers lists
   set_fact:
-    zoo_servers: ""
-    kafka_zoo_servers: ""
+    zoo_servers: []
+    kafka_zoo_servers: []
 
 - name: Kafka cluster | Set required server lists
   set_fact:
-    zoo_servers: "{{ zoo_servers + ' server.' + ( id | int + 1 ) | string + '=' + zoo_prefix + '-' + ( id | int + 1 ) | string  + ':' + zoo_ports.mgmt }}"
-    kafka_zoo_servers: "{{ kafka_zoo_servers + ' ' + zoo_prefix + '-' + ( id | int + 1 ) | string + ':' + zoo_ports.client | string }}"
+    zoo_servers: "{{ zoo_servers + [ zoo_prefix + '-' + ( id | int + 1 ) | string  + ':' + zoo_ports.mgmt ] }}"
+    kafka_zoo_servers: "{{ kafka_zoo_servers + [ zoo_prefix + '-' + ( id | int + 1 ) | string + ':' + zoo_ports.client | string ] }}"
   loop: "{{ groups['kafka'] }}"
   loop_control:
     index_var: id
@@ -27,6 +27,31 @@
     index_var: id
   when: configure_etc_hosts
 
+- name: Kafka cluster | Ensure group "zookeeper" exists
+  group:
+    name: kafka
+    gid: 12345
+    state: present
+
+- name: Kafka cluster | Ensure group "zookeeper" exists
+  user:
+    name: kafka
+    uid: 12345
+    shell: /bin/nologin
+    state: present
+
+- name: Kafka cluster | Create persistence directory for kafka and zookeeper
+  file:
+    path: "{{ item }}"
+    owner: kafka
+    group: kafka
+    state: directory
+  when: kafka_persistence_enabled
+  loop:
+    - "{{ persistence_path }}/zk-data"
+    - "{{ persistence_path }}/zk-txn-logs"
+    - "{{ persistence_path }}/kafka-data"
+
 - name: Kafka cluster | Upload docker compose for kafka and zookeeper
   docker_service:
     project_name: "{{ kafka_prefix }}"
@@ -34,27 +59,32 @@
       version: '2.1'
       services:
         zookeeper:
-          image: zookeeper:{{ zoo_version }}
+          image: confluentinc/cp-zookeeper:{{ zoo_version }}
           container_name: "{{ zoo_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
           hostname: "{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
           restart: always
           network_mode: host
+          user: "12345"
           environment:
-            ZOO_MY_ID: "{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
-            ZOO_PORT: "{{ zoo_ports.client }}"
-            ZOO_SERVERS: "{{ zoo_servers }}"
+            ZOOKEEPER_SERVER_ID: "{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+            ZOOKEEPER_CLIENT_PORT: "{{ zoo_ports.client }}"
+            ZOOKEEPER_SERVERS: "{{ zoo_servers | join(';') }}"
+          volumes:
+            - "{{ persistence_path }}/zk-data:/var/lib/zookeeper/data"
+            - "{{ persistence_path }}/zk-txn-logs:/var/lib/zookeeper/log"
         kafka:
           image: confluentinc/cp-kafka:{{ kafka_version }}
           container_name: "{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
           hostname: "{{ zoo_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
           restart: always
           network_mode: host
+          user: "12345"
           environment:
             KAFKA_ADVERTISED_LISTENERS: >
               LISTENER_DOCKER_INTERNAL://{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}:{{ kafka_ports.server }}
             KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT
             KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
-            KAFKA_ZOOKEEPER_CONNECT: "{{ kafka_zoo_servers }}"
+            KAFKA_ZOOKEEPER_CONNECT: "{{ kafka_zoo_servers | join (',') }}"
             KAFKA_BROKER_ID: "{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
             KAFKA_JMX_OPTS: >
               "-Dcom.sun.management.jmxremote
@@ -63,6 +93,8 @@
               -Djava.rmi.server.hostname={{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}
               -Dcom.sun.management.jmxremote.rmi.port={{ kafka_ports.jmx }}"
             JMX_PORT: "{{ kafka_ports.jmx }}"
+          volumes:
+            - "{{ persistence_path }}/kafka-data:/var/lib/kafka/data"
           depends_on:
             - "zookeeper"
 
