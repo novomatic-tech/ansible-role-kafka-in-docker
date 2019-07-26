@@ -11,8 +11,6 @@ ToDo
     *   kafka and zookeeper use user `kafka` (uid=12345)
     *   exporter still in root user (x)
 *   Configure friewalld and ufw rules to expose only kafka traffic ports outside hosts.
-*   Add possibility to disable Kafka persistence.
-
 
 Role Variables
 --------------
