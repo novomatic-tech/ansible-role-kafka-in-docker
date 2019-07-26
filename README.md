@@ -7,10 +7,11 @@ ToDo
 --------------
 *   Add correct test to check if cluster is correctly setup
 *   Switch docker container to use other `USER` than root:
-    *   kafka and zookeeper use user `zookeeper` (uid=12345) (/)
-    *   exporter still in root users (x)
+    Status:
+    *   kafka and zookeeper use user `kafka` (uid=12345)
+    *   exporter still in root user (x)
 *   Configure friewalld and ufw rules to expose only kafka traffic ports outside hosts.
-*   Enable kafka persistence
+*   Add possibility to disable Kafka persistence.
 
 
 Role Variables
