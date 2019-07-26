@@ -1,2 +1,3 @@
 ---
 configure_etc_hosts: false
+kafka_persistence_enabled: false

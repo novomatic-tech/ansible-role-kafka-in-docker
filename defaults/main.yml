@@ -1,13 +1,20 @@
 ---
 host_domain: domain.local
+configure_etc_hosts: true
+
 persistence_path: "/data"
+
+zoo_persistence_enabled: true
 kafka_persistence_enabled: true
+
+compose_files_path: "/etc/compose-files"
 # service_prefix:
 kafka_prefix: "{{ service_prefix+'-kafka' if service_prefix is defined else 'kafka' }}"
 kafka_ports:
   server: 9092
   jmx: 9082
 kafka_version: "4.1.2-3"
+
 kafka_monitoring_enabled: true
 exporter_versions:
   kafka: "patch1"
@@ -15,9 +22,9 @@ exporter_versions:
   zoo: "latest"
 kafka_mon_user: kafkamonit
 kafka_mon_group: kafkamonit
+
 zoo_prefix: "{{ service_prefix+'-zoo' if service_prefix is defined else 'zoo' }}"
 zoo_ports:
   client: 2181
   mgmt: "2888:3888"
 zoo_version: "5.3.0"
-configure_etc_hosts: true
