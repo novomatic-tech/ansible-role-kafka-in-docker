@@ -40,17 +40,24 @@
     shell: /bin/nologin
     state: present
 
-- name: Kafka cluster | Create persistence directory for kafka and zookeeper
+- name: Kafka cluster | Create persistence directory for zookeeper
   file:
     path: "{{ item }}"
     owner: kafka
     group: kafka
     state: directory
-  when: kafka_persistence_enabled
+  when: zoo_persistence_enabled
   loop:
     - "{{ persistence_path }}/zk-data"
     - "{{ persistence_path }}/zk-txn-logs"
-    - "{{ persistence_path }}/kafka-data"
+
+- name: Kafka cluster | Create persistence directory for kafka
+  file:
+    path: "{{ persistence_path }}/kafka-data"
+    owner: kafka
+    group: kafka
+    state: directory
+  when: kafka_persistence_enabled
 
 - name: Kafka cluster | Prepare compose folder
   file:
@@ -73,25 +80,17 @@
     - name: Kafka cluster | Create monitoring directory
       file:
         path: "{{ persistence_path }}/exporter"
+        owner: kafka
+        group: kafka
         state: directory
 
     - name: Kafka cluster | Template configuration file for jmx-exporter config.yml
       template:
         src: config.yml.j2
         dest: "{{ persistence_path }}/exporter/config.yml"
-        owner: nobody
-        group: nobody
+        owner: kafka
+        group: kafka
         mode: '0644'
-      when: ansible_os_family == 'RedHat'
-
-    - name: Kafka cluster | Template configuration file for jmx-exporter config.yml
-      template:
-        src: config.yml.j2
-        dest: "{{ persistence_path }}/exporter/config.yml"
-        owner: nobody
-        group: nogroup
-        mode: '0644'
-      when: ansible_distribution == 'Ubuntu'
 
     - name: Kafka cluster | Prepare exporter compose folder
       file:

@@ -5,11 +5,7 @@ Role is used in our organization for different testing purposes and demo envirom
 
 ToDo
 --------------
-*   Add correct test to check if cluster is correctly setup
-*   Switch docker container to use other `USER` than root:
-    Status:
-    *   kafka and zookeeper use user `kafka` (uid=12345)
-    *   exporter still in root user (x)
+*   Add correct test to check if cluster is correctly setup.
 *   Configure friewalld and ufw rules to expose only kafka traffic ports outside hosts.
 
 Role Variables
