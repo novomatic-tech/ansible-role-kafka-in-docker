@@ -19,7 +19,7 @@
     block: |
       {% set kafka_hosts_name = [ kafka_prefix + '-' + (id | int + 1 ) | string, zoo_prefix + '-' + (id | int + 1 ) | string ] %}
       {% for host in kafka_hosts_name %}
-      {{ ansible_default_ipv4['address'] }} {{ host + '.' + host_domain + ' '+ host if host_domain is defined else host }}
+      {{ hostvars[item].ansible_default_ipv4['address'] }} {{ host + '.' + host_domain + ' '+ host if host_domain is defined else host }}
       {% endfor %}
     marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item }}"
   loop: "{{ groups['kafka'] }}"
