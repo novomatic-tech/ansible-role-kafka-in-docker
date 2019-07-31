@@ -27,13 +27,13 @@
     index_var: id
   when: configure_etc_hosts
 
-- name: Kafka cluster | Ensure group "zookeeper" exists
+- name: Kafka cluster | Ensure group "kafka" exists
   group:
     name: kafka
     gid: 12345
     state: present
 
-- name: Kafka cluster | Ensure group "zookeeper" exists
+- name: Kafka cluster | Ensure group "kafka" exists
   user:
     name: kafka
     uid: 12345
@@ -65,7 +65,7 @@
     state: directory
     recurse: yes
 
-- name: Kafka cluster | Copy Kafka compose
+- name: Kafka cluster | Copy compose for Kafka components
   template:
     src: kafka-compose.yml.j2
     dest: "{{ compose_files_path }}/{{ kafka_prefix }}/docker-compose.yml"
