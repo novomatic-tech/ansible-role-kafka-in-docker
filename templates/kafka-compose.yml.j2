@@ -2,13 +2,12 @@ version: "2.1"
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:{{ zoo_version }}
-    container_name: {{ zoo_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}
-    hostname: {{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}
+    container_name: {{ zoo_prefix }}-{{ kafka_broker_id }}
     restart: always
     network_mode: host
     user: "12345"
     environment:
-      ZOOKEEPER_SERVER_ID: "{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
+      ZOOKEEPER_SERVER_ID: "{{ kafka_broker_id }}"
       ZOOKEEPER_CLIENT_PORT: "{{ zoo_ports.client }}"
       ZOOKEEPER_SERVERS: "{{ zoo_servers | join(';') }}"
 {% if zoo_persistence_enabled %}
@@ -18,18 +17,17 @@ services:
 {% endif %}
   kafka:
     image: confluentinc/cp-kafka:{{ kafka_version }}
-    container_name: {{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}
-    hostname: {{ zoo_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}
+    container_name: {{ kafka_prefix }}-{{ kafka_broker_id }}
     restart: always
     network_mode: host
     user: "12345"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://{{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }}:{{ kafka_ports.server }}
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://{{ kafka_host }}:{{ kafka_ports.server }}
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "{{ kafka_zoo_servers | join (',') }}"
-      KAFKA_BROKER_ID: "{{ groups['kafka'].index(inventory_hostname) | int + 1 }}"
-      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname={{ kafka_prefix }}-{{ groups['kafka'].index(inventory_hostname) | int + 1 }} -Dcom.sun.management.jmxremote.rmi.port={{ kafka_ports.jmx }}"
+      KAFKA_BROKER_ID: "{{ kafka_broker_id }}"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname={{ kafka_host }} -Dcom.sun.management.jmxremote.rmi.port={{ kafka_ports.jmx }}"
       JMX_PORT: "{{ kafka_ports.jmx }}"
     depends_on:
       - zookeeper
