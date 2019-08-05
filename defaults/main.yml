@@ -9,7 +9,7 @@ kafka_persistence_enabled: true
 
 compose_files_path: "/etc/compose-files"
 # service_prefix:
-kafka_prefix: "{{ service_prefix+'-kafka' if service_prefix is defined else 'kafka' }}"
+kafka_prefix: "{{ service_prefix + '-kafka' if service_prefix is defined else 'kafka' }}"
 kafka_ports:
   server: 9092
   jmx: 9082
@@ -23,7 +23,7 @@ exporter_versions:
 kafka_mon_user: kafkamonit
 kafka_mon_group: kafkamonit
 
-zoo_prefix: "{{ service_prefix+'-zoo' if service_prefix is defined else 'zoo' }}"
+zoo_prefix: "{{ service_prefix + '-zoo' if service_prefix is defined else 'zoo' }}"
 zoo_ports:
   client: 2181
   mgmt: "2888:3888"
