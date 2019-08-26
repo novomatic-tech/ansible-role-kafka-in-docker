@@ -80,7 +80,7 @@
     dest: "{{ compose_files_path }}/{{ kafka_prefix }}/docker-compose.yml"
 
 - name: Kafka cluster | Upload docker compose for kafka and zookeeper
-  docker_service:
+  docker_compose:
     project_name: "{{ kafka_prefix }}"
     project_src: "{{ compose_files_path }}/{{ kafka_prefix }}"
 
@@ -113,7 +113,7 @@
         dest: "{{ compose_files_path }}/{{ kafka_prefix }}_exporter/docker-compose.yml"
 
     - name: Kafka cluster | Upload docker compose for monitoring
-      docker_service:
+      docker_compose:
         project_name: "{{ kafka_prefix }}_exporter"
         project_src: "{{ compose_files_path }}/{{ kafka_prefix }}_exporter"
   when: kafka_monitoring_enabled
