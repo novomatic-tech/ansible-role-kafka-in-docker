@@ -20,6 +20,10 @@ exporter_versions:
   kafka: "patch1"
   jmx: "latest"
   zoo: "latest"
+exporter_ports:
+  kafka: 9308
+  jmx: 5556
+  zoo: 9150
 kafka_mon_user: kafkamonit
 kafka_mon_group: kafkamonit
 

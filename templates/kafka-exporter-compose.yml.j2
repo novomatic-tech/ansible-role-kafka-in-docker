@@ -4,7 +4,7 @@ services:
     image: danielqsj/kafka-exporter:{{ exporter_versions.kafka }}
     container_name: "{{ kafka_prefix }}-exporter-{{ kafka_broker_id }}"
     restart: always
-    command: "--kafka.server={{ kafka_host }}:{{ kafka_ports.server }}"
+    command: "--kafka.server={{ kafka_host }}:{{ kafka_ports.server }} --web.listen-address=:{{ exporter_ports.kafka }}"
     network_mode: host
     user: "12345"
 
@@ -12,7 +12,7 @@ services:
     image: solsson/kafka-prometheus-jmx-exporter:{{ exporter_versions.jmx }}
     container_name: "{{ kafka_prefix }}-exporter-jmx-{{ kafka_broker_id }}"
     restart: always
-    command: "5556 /etc/jmx-kafka/config.yml"
+    command: "{{ exporter_ports.jmx }} /etc/jmx-kafka/config.yml"
     network_mode: host
     user: "12345"
     volumes:
@@ -23,5 +23,5 @@ services:
     container_name: "{{ kafka_prefix }}-exporter-zoo-{{ kafka_broker_id }}"
     restart: always
     network_mode: host
-    command: "--zk-host={{ zoo_host }} --timeout=30"
+    command: "--zk-host={{ zoo_host }} --timeout=30 --listen 0.0.0.0:{{ exporter_ports.zoo }}"
     user: "12345"
