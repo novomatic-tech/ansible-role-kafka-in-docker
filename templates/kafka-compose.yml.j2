@@ -29,6 +29,10 @@ services:
       KAFKA_BROKER_ID: "{{ kafka_broker_id }}"
       KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname={{ kafka_host }} -Dcom.sun.management.jmxremote.rmi.port={{ kafka_ports.jmx }}"
       JMX_PORT: "{{ kafka_ports.jmx }}"
+      {% for env in kafka_docker_environment %}
+{{ env }}
+      {% endfor %}
+
     depends_on:
       - zookeeper
 {% if kafka_persistence_enabled %}
