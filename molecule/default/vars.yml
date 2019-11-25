@@ -1,3 +1,8 @@
 ---
 configure_etc_hosts: false
 kafka_persistence_enabled: false
+
+docker_daemon_options:
+  storage-driver: "vfs"
+  log-opts:
+    max-size: "100m"

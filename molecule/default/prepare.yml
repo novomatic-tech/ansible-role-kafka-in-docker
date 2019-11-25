@@ -3,3 +3,63 @@
   hosts: all
   gather_facts: true
   tasks: []
+
+- name: Prepare -- Install dependencies
+  hosts: centos7
+  any_errors_fatal: yes
+  pre_tasks:
+    - name: Install required packages
+      yum:
+        name: '{{ item }}'
+        state: present
+        disable_gpg_check: yes
+      loop:
+        - firewalld
+        - epel-release
+        - python-pip
+        - gcc
+        - python-devel
+    - name: Install docker python modules
+      pip:
+        name: '{{ item }}'
+        state: present
+      loop:
+        - more-itertools==5.0.0
+        - docker
+        - docker-compose
+
+- name: Prepare -- Install dependencies
+  hosts: ubuntu18
+  any_errors_fatal: yes
+  pre_tasks:
+    - name: Install required packages
+      apt:
+        name: '{{ item }}'
+        state: present
+      loop:
+        - ufw
+        - python-pip
+    - name: Install docker python modules
+      pip:
+        name: '{{ item }}'
+        state: present
+      loop:
+        - docker
+        - docker-compose
+
+- name: Prepare -- Install docker
+  hosts: all
+  any_errors_fatal: yes
+  pre_tasks:
+    - name: Include vars
+      include_vars: vars.yml
+  roles:
+    - geerlingguy.docker
+  post_tasks:
+    - name: Configure docker daemon options.
+      copy:
+        content: "{{ docker_daemon_options | to_nice_json }}"
+        dest: /etc/docker/daemon.json
+        mode: 0644
+    - name: restart docker
+      service: "name=docker state=restarted"

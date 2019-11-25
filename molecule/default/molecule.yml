@@ -11,8 +11,7 @@ platforms:
   - name: centos7
     groups:
       - kafka
-    image: paulfantom/centos-molecule
-    image_version: 7
+    image: paulfantom/centos-molecule:7
     pre_build_image: true
     privileged: true
     volumes:
@@ -20,8 +19,7 @@ platforms:
   - name: ubuntu18
     groups:
       - kafka
-    image: paulfantom/ubuntu-molecule
-    image_version: 18.04
+    image: paulfantom/ubuntu-molecule:18.04
     pre_build_image: true
     privileged: true
     volumes:
